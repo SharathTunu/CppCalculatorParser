@@ -29,7 +29,7 @@ void scan(char *input_data, int postion) {
     // Check for the end of program
     
     // printf("%s", &input_data[postion]);
-    if (input_data[postion] == EOF) {
+    if (input_data[postion] == '\0') {
         printf("EOF\n");
         currentToken.token_type = eof;
         currentToken.pos = postion;
@@ -62,18 +62,75 @@ void scan(char *input_data, int postion) {
             currentToken.pos = postion;
             printf("write\n");
             return;
-        } else {
-            currentToken.token_type = literal;
+        }else {
+            currentToken.token_type = id;
             currentToken.pos = postion;
-            printf("literal\n");
+            printf("id\n");
             return;
         }
-    } else {
-        postion++;
-        currentToken.token_type = id;
+    
+    } else if (isdigit(input_data[postion])) {
+        do {
+            token_image[i++] = input_data[postion];
+            postion++;
+        } while (isdigit(input_data[postion]));
+        token_image[i] = '\0';
+        currentToken.token_type = literal;
         currentToken.pos = postion;
-        printf("id\n");
+        printf("literal\n");
         return;
-    }
+    } else switch (input_data[postion]) {
+            case ':':
+                postion++;
+                if (input_data[postion] != '=') {
+                    fprintf(stderr, "lexical error\n");
+                    exit(1);
+                } else {
+                    postion++;
+                    currentToken.token_type = becomes;
+                    currentToken.pos = postion;
+                    printf("becomes\n");
+                }
+                return;
+            case '+':
+                postion++;
+                currentToken.token_type = add;
+                currentToken.pos = postion;
+                printf("add\n");
+                return;
+            case '-':
+                postion++;  
+                currentToken.token_type = sub;
+                currentToken.pos = postion;
+                printf("sub\n");
+                return;
+            case '*':
+                postion++;
+                currentToken.token_type = mul;
+                currentToken.pos = postion;
+                printf("multiply\n");
+                return;
+            case '/':
+                postion++;
+                currentToken.token_type = divide;
+                currentToken.pos = postion;
+                printf("divide\n");
+                return;
+            case '(':
+                postion++;
+                currentToken.token_type = lparen;
+                currentToken.pos = postion;
+                printf("lparen\n");
+                return;
+            case ')':
+                postion++;
+                currentToken.token_type = rparen;
+                currentToken.pos = postion;
+                printf("rparen\n");
+                return;
+            default:
+                printf("lexical error\n");
+                exit(1);
+        }
     printf("Nothing doing\n");
 }

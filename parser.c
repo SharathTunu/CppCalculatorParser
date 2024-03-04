@@ -12,52 +12,9 @@ char *input;
 int pos = 0;
 
 // Forward declarations
-void getNextToken();
 void getNextToken2();
-double expr();
+void expr();
 // void eat(token tokenType);
-
-// Function to get the next token
-void getNextToken() {
-    char *endptr;
-    while (input[pos] == ' ') {
-        pos++;
-    }
-
-    if (input[pos] == '\0') {
-        printf(" END;");
-        return;
-    } else if (isdigit(input[pos]) || input[pos] == '.') {
-        printf(" NUMBER;");
-        // currentToken.value = strtod(input + pos, &endptr);
-        pos = endptr - input;
-    } else {
-        switch (input[pos]) {
-            case '+':
-                printf(" PLUS;");
-                break;
-            case '-':
-                printf(" MINUS;");
-                break;
-            case '*':
-                printf(" MULTIPLY;");
-                break;
-            case '/':
-                printf(" DIVIDE;");
-                break;
-            case '(':
-                printf(" LPAREN;");
-                break;
-            case ')':
-                printf(" RPAREN;");
-                break;
-            default:
-                printf(" INVALID;");
-                break;
-        }
-        pos++;
-    }
-}
 
 void getNextToken2() {
     char *endptr;
@@ -71,18 +28,10 @@ void getNextToken2() {
 }
 
 // Function to parse an expression
-double expr() {
-    double result = term();
-    while (currentToken.token_type == add || currentToken.token_type == sub) {
-        if (currentToken.token_type == add) {
-            eat(add);
-            result += term();
-        } else if (currentToken.token_type == sub) {
-            eat(sub);
-            result -= term();
-        }
+void expr() {
+    while (currentToken.token_type != eof) {
+        getNextToken2();
     }
-    return result;
 }
 
 
@@ -108,24 +57,7 @@ int main(int argc, char *argv[]) {
     
     fclose(fp);
 
-    getNextToken2();
-    getNextToken2();
-    getNextToken2();
-    getNextToken2();
-    // getNextToken2();
-    // getNextToken();
-    // getNextToken();
-    // getNextToken();
-    // getNextToken();
-    
-    // double result = expr(); // Parse the expression
-    
-    // if (currentToken.type != END) {
-    //     printf("Syntax error: Invalid expression\n");
-    //     return 1;
-    // }
-    
-    // printf("Result: %.2f\n", result);
+    expr();
     
     free(input);
 
