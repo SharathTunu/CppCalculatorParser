@@ -1,0 +1,65 @@
+procedure match(expected)
+if input token = expected then consume input token()
+else parse error
+
+– – this is the start routine:
+procedure program()
+case input token of
+id, read, write, $$ :
+stmt list()
+match($$)
+otherwise parse error
+
+procedure stmt list()
+case input token of
+id, read, write : stmt(); stmt list()
+$$ : skip – – epsilon production
+otherwise parse error
+
+procedure stmt()
+case input token of
+id : match(id); match(:=); expr()
+read : match(read); match(id)
+write : match(write); expr()
+otherwise parse error
+
+procedure expr()
+case input token of
+id, number, ( : term(); term tail()
+otherwise parse error
+procedure term tail()
+case input token of
++, - : add op(); term(); term tail()
+), id, read, write, $$ :
+skip – – epsilon production
+otherwise parse error
+
+procedure term()
+case input token of
+id, number, ( : factor(); factor tail()
+otherwise parse error
+
+procedure factor tail()
+case input token of
+*, / : mult op(); factor(); factor tail()
++, -, ), id, read, write, $$ :
+skip – – epsilon production
+otherwise parse error
+
+procedure factor()
+case input token of
+id : match(id)
+number : match(number)
+( : match((); expr(); match())
+otherwise parse error
+procedure add op()
+case input token of
++ : match(+)
+- : match(-)
+otherwise parse error
+
+procedure mult op()
+case input token of
+* : match(*)
+/ : match(/)
+otherwise parse error
