@@ -1,3 +1,4 @@
+/* sample test */
 read a
 write b
 area := a * b

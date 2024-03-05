@@ -16,6 +16,24 @@ void getNextToken2();
 void expr();
 // void eat(token tokenType);
 
+// Table-driven parsing rules
+typedef struct {
+    token input;
+    token next[8];
+} ParseTable;
+
+ParseTable parseTable[] = {
+    {lparen, {lparen, id, add, sub, lineBreak}},
+    {rparen, {rparen, END, lineBreak}},
+    {id, {mul, divide, rparen, lineBreak}},
+    {add, {id, lparen, lineBreak}},
+    {sub, {id, lparen, lineBreak}},
+    {mul, {id, lparen, lineBreak}},
+    {divide, {id, lparen, lineBreak}},
+    {END, {END, lineBreak}},
+    {lineBreak, {lineBreak}}
+};
+
 void getNextToken2() {
     char *endptr;
     

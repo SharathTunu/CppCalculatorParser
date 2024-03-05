@@ -1,6 +1,4 @@
-procedure match(expected)
-if input token = expected then consume input token()
-else parse error
+
 
 – – this is the start routine:
 procedure program()
