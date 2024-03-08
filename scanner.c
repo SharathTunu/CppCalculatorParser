@@ -1,26 +1,28 @@
 #include <stdio.h>
 #include <string.h>
 #include "ctype.h"
+#include <stdbool.h>
 
 // Changed div to divide as div is a key word in stdlib library and its creating compilation errors
-typedef enum {read, write, id, literal, becomes, lineBreak,
+typedef enum {read, write, id, literal, becomes, lineBreak, OC, CC,
                 add, sub, mul, divide, lparen, rparen, eof, lerror} token;
 
 // Token structure
 typedef struct {
     token token_type;
-    double value;
     int pos;
+    bool open_comment;
 } Token;
 
 // Global variables
 char token_image[100];
 
-char* names[] = {"read", "write", "id", "literal", "becomes", "lineBreak",
+char* names[] = {"read", "write", "id", "literal", "becomes", "lineBreak", "openComent", "closeComent",
                 "add", "sub", "mul", "divide", "lparen", "rparen", "eof", "lexical error"};
 
-Token currentToken;
-void scan(char *input_data, int postion) {
+Token returnData;
+void scan(char *input_data, int postion, bool open_comment) {
+    returnData.open_comment = open_comment;
     printf("current P is %d\n", postion);
     int i = 0;              /* index into token_image */
     while (input_data[postion] == ' ') {
@@ -31,15 +33,19 @@ void scan(char *input_data, int postion) {
     // printf("%s", &input_data[postion]);
     if (input_data[postion] == '\0') {
         printf("EOF\n");
-        currentToken.token_type = eof;
-        currentToken.pos = postion;
+        returnData.token_type = eof;
+        returnData.pos = postion;
         return;
     }
     if (input_data[postion] == '\n') {
         printf("EOL\n");
+        if (returnData.open_comment == true) {
+            fprintf(stderr, "lexical error\n");
+            exit(1);
+        }
         postion++;
-        currentToken.token_type = lineBreak;
-        currentToken.pos = postion;
+        returnData.token_type = lineBreak;
+        returnData.pos = postion;
         return;
     }
     // Check for read or write
@@ -52,19 +58,19 @@ void scan(char *input_data, int postion) {
 
         token_image[i] = '\0';
         if (!strcmp(token_image, "read")) {
-            currentToken.token_type = read;
-            currentToken.pos = postion;
+            returnData.token_type = read;
+            returnData.pos = postion;
             printf("read\n");
             return;
         }
         else if (!strcmp(token_image, "write")) {
-            currentToken.token_type = write;
-            currentToken.pos = postion;
+            returnData.token_type = write;
+            returnData.pos = postion;
             printf("write\n");
             return;
         }else {
-            currentToken.token_type = id;
-            currentToken.pos = postion;
+            returnData.token_type = id;
+            returnData.pos = postion;
             printf("id\n");
             return;
         }
@@ -75,8 +81,8 @@ void scan(char *input_data, int postion) {
             postion++;
         } while (isdigit(input_data[postion]));
         token_image[i] = '\0';
-        currentToken.token_type = literal;
-        currentToken.pos = postion;
+        returnData.token_type = literal;
+        returnData.pos = postion;
         printf("literal\n");
         return;
     } else switch (input_data[postion]) {
@@ -87,45 +93,61 @@ void scan(char *input_data, int postion) {
                     exit(1);
                 } else {
                     postion++;
-                    currentToken.token_type = becomes;
-                    currentToken.pos = postion;
+                    returnData.token_type = becomes;
+                    returnData.pos = postion;
                     printf("becomes\n");
                 }
                 return;
+            case '/':
+                postion++;
+                if (input_data[postion] == '*') {
+                    postion++;
+                    returnData.token_type = OC;
+                    returnData.pos = postion;
+                    returnData.open_comment = true;
+                    printf("openComent\n");
+                    return;
+                }
+                returnData.token_type = divide;
+                returnData.pos = postion;
+                printf("divide\n");
+                return;
+            case '*':
+                postion++;
+                if (input_data[postion] == '/') {
+                    postion++;
+                    returnData.token_type = CC;
+                    returnData.pos = postion;
+                    returnData.open_comment = false;
+                    printf("closeComent\n");
+                    return;
+                }
+                returnData.token_type = mul;
+                returnData.pos = postion;
+                printf("multiply\n");
+                return;
             case '+':
                 postion++;
-                currentToken.token_type = add;
-                currentToken.pos = postion;
+                returnData.token_type = add;
+                returnData.pos = postion;
                 printf("add\n");
                 return;
             case '-':
                 postion++;  
-                currentToken.token_type = sub;
-                currentToken.pos = postion;
+                returnData.token_type = sub;
+                returnData.pos = postion;
                 printf("sub\n");
-                return;
-            case '*':
-                postion++;
-                currentToken.token_type = mul;
-                currentToken.pos = postion;
-                printf("multiply\n");
-                return;
-            case '/':
-                postion++;
-                currentToken.token_type = divide;
-                currentToken.pos = postion;
-                printf("divide\n");
                 return;
             case '(':
                 postion++;
-                currentToken.token_type = lparen;
-                currentToken.pos = postion;
+                returnData.token_type = lparen;
+                returnData.pos = postion;
                 printf("lparen\n");
                 return;
             case ')':
                 postion++;
-                currentToken.token_type = rparen;
-                currentToken.pos = postion;
+                returnData.token_type = rparen;
+                returnData.pos = postion;
                 printf("rparen\n");
                 return;
             default:
