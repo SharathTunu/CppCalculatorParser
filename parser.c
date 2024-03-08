@@ -8,47 +8,50 @@
 #include "scanner.c"
 
 // Global variables
-char *input;
+char *stack;
 int pos = 0;
-
+bool open_comment = false;
+bool debug = true;
 // Forward declarations
-void getNextToken2();
+void match(char predict);
+void stmt_list();
 void expr();
-// void eat(token tokenType);
+void factor_tail();
+void factor();
+void term_tail();
+void term();
+void expr();
+void error();
 
-// Table-driven parsing rules
-typedef struct {
-    token input;
-    token next[8];
-} ParseTable;
-
-ParseTable parseTable[] = {
-    {lparen, {lparen, id, add, sub, lineBreak}},
-    {rparen, {rparen, END, lineBreak}},
-    {id, {mul, divide, rparen, lineBreak}},
-    {add, {id, lparen, lineBreak}},
-    {sub, {id, lparen, lineBreak}},
-    {mul, {id, lparen, lineBreak}},
-    {divide, {id, lparen, lineBreak}},
-    {END, {END, lineBreak}},
-    {lineBreak, {lineBreak}}
-};
-
-void getNextToken2() {
-    char *endptr;
-    
-    scan(input, pos);
-    printf("Tyep is: %s\n", names[currentToken.token_type]);
-    pos = currentToken.pos;
-    printf("next P is %d\n", pos);
-    printf("-------------------\n");
-
+/*----------------Helper functions------------------*/
+void error() {
+    // Print errors
+    printf("Syntax error at position %s\n", &stack[pos]);
+    exit(EXIT_FAILURE);
 }
 
-// Function to parse an expression
-void expr() {
-    while (currentToken.token_type != eof) {
-        getNextToken2();
+void match(char predict) {
+    // Function to match against next predicted character
+    if (stack[pos] == predict) {
+        pos++;
+    } else {
+        error();
+    }
+}
+
+/*---------------------Parse Table----------------------*/
+
+/*------------------Scan and update the pointer (st)------------------*/
+void stmt_list() {    
+    while (returnData.token_type != eof) {
+        scan(stack, pos, open_comment);
+        pos = returnData.pos;
+        open_comment = returnData.open_comment;
+        if (debug == true) {
+            printf("Tyep is: %s\n", names[returnData.token_type]);
+            printf("next P is %d\n", pos);
+            printf("-------------------\n");
+        }
     }
 }
 
@@ -69,15 +72,16 @@ int main(int argc, char *argv[]) {
     long file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     
-    input = (char *)malloc(file_size + 1);
-    fread(input, 1, file_size, fp);
-    input[file_size] = '\0';
+    stack = (char *)malloc(file_size + 1);
+    fread(stack, 1, file_size, fp);
+    stack[file_size] = '\0';
     
     fclose(fp);
 
-    expr();
+    // Init parsing
+    stmt_list();
     
-    free(input);
+    free(stack);
 
     return 0;
 }
