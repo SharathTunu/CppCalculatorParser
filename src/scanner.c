@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 // Changed div to divide as div is a key word in stdlib library and its creating compilation errors
-typedef enum {read, write, id, literal, becomes, lineBreak, OC, CC,
+typedef enum {read, write, id, literal, becomes, lineBreak, OC, CC, SC,
                 add, sub, mul, divide, lparen, rparen, eof, lerror} token;
 
 // Token structure
@@ -12,17 +12,19 @@ typedef struct {
     token token_type;
     int pos;
     bool open_comment;
+    int prev_pos;
 } Token;
 
 // Global variables
 char token_image[100];
 
 char* names[] = {"read", "write", "id", "literal", "becomes", "lineBreak", "openComent", "closeComent",
-                "add", "sub", "mul", "divide", "lparen", "rparen", "eof", "lexical error"};
+                "shortComent", "add", "sub", "mul", "divide", "lparen", "rparen", "eof", "lexical error"};
 
 Token returnData;
 void scan(char *input_data, int postion, bool open_comment) {
     returnData.open_comment = open_comment;
+    returnData.prev_pos = postion;
     printf("current P is %d\n", postion);
     int i = 0;              /* index into token_image */
     while (input_data[postion] == ' ') {
@@ -106,6 +108,12 @@ void scan(char *input_data, int postion, bool open_comment) {
                     returnData.pos = postion;
                     returnData.open_comment = true;
                     printf("openComent\n");
+                    return;
+                }else if (input_data[postion] == '/') {
+                    postion++;
+                    returnData.token_type = SC;
+                    returnData.pos = postion;
+                    printf("shortComent\n");
                     return;
                 }
                 returnData.token_type = divide;
