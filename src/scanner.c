@@ -22,10 +22,17 @@ char* names[] = {"read", "write", "id", "literal", "becomes", "lineBreak", "open
                 "shortComent", "add", "sub", "mul", "divide", "lparen", "rparen", "eof", "lexical error"};
 
 Token returnData;
+
+void lex_error(char *input_data) {
+    printf("Lexical error at position %s\n", &input_data[returnData.prev_pos]);
+    exit(1);
+
+}
+
 void scan(char *input_data, int postion, bool open_comment) {
     returnData.open_comment = open_comment;
     returnData.prev_pos = postion;
-    printf("current P is %d\n", postion);
+    printf("current Pointer idx is %d\n", postion);
     int i = 0;              /* index into token_image */
     while (input_data[postion] == ' ') {
         postion++;
@@ -42,8 +49,7 @@ void scan(char *input_data, int postion, bool open_comment) {
     if (input_data[postion] == '\n') {
         printf("EOL\n");
         if (returnData.open_comment == true) {
-            fprintf(stderr, "lexical error\n");
-            exit(1);
+            lex_error(input_data);
         }
         postion++;
         returnData.token_type = lineBreak;
@@ -91,8 +97,7 @@ void scan(char *input_data, int postion, bool open_comment) {
             case ':':
                 postion++;
                 if (input_data[postion] != '=') {
-                    fprintf(stderr, "lexical error\n");
-                    exit(1);
+                    lex_error(input_data);
                 } else {
                     postion++;
                     returnData.token_type = becomes;
